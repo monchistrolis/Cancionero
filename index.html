@@ -38,16 +38,19 @@
         .section-title { font-weight: bold; color: var(--primary); display: block; font-family: sans-serif; margin-top: 1.5rem; font-size: 1.2rem; border-bottom: 1px solid #eee; }
 
         .stage-mode { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-        .stage-controls { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; z-index: 110; }
+        .stage-controls { position: fixed; bottom: 20px; right: 20px; display: f }
         .tone-ctrl { position: fixed; top: 80px; right: 20px; display: flex; flex-direction: column; gap: 5px; z-index: 110; }
 
         .event-song { background: #fff; margin: 5px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Controles flotantes para vista detalle */
+        .detail-controls { position: fixed; bottom: 20px; right: 20px; display:  gap: 10px; z-index: 50; }
     </style>
 </head>
 <body>
 
     <header>
-        <span id="nav-title" onclick="showView('home')" style="cursor:pointer; font-weight:bold;">MusicPro</span>
+        <span id="nav-title" onclick="showView('home')" style="cursor:pointer; fpan>
         <div id="header-actions"></div>
     </header>
 
@@ -57,7 +60,7 @@
             <input type="text" id="search-input" placeholder="Buscar título, artista o letra..." oninput="loadSongs()">
             <div id="songs-list"></div>
             <button onclick="showView('add')" style="width:100%; margin-top:20px;">+ Nueva Canción</button>
-            <button onclick="showView('events')" class="btn-gray" style="width:100%; margin-top:10px;">📅 Mis Eventos</button>
+            <button onclick="showView('events')" class="btn-gray" style="width:1 Eventos</button>
         </div>
 
         <!-- ADD/EDIT SONG -->
@@ -71,7 +74,7 @@
             <textarea id="s-content" rows="15" placeholder="[Intro]&#10;G       C&#10;Letra aquí..."></textarea>
             <div style="display:flex; gap:10px;">
                 <button onclick="saveSong()" style="flex:2;">💾 Guardar Canción</button>
-                <button onclick="showView('home')" class="btn-gray" style="flex:1;">Cancelar</button>
+                <button onclick="showView('home')" class="btn-gray" style="flex:
             </div>
         </div>
 
@@ -90,12 +93,12 @@
             <h2 id="ev-detail-title">Evento</h2>
             <div id="ev-songs-list"></div>
             <hr>
-            <h4>Agregar canción:</h4>
+            <h4 style="margin-bottom:5px;">Agregar canción:</h4>
             <select id="ev-song-select"></select>
             <button onclick="addSongToEvent()">Agregar</button>
             <br><br>
             <button onclick="showView('events')" class="btn-gray">Volver</button>
-            <button onclick="enterStageMode()" style="background: #16a34a;">🚀 Modo Escenario</button>
+            <button onclick="enterStageMode()" style="background: #16a34a;">🚀 M
         </div>
 
         <!-- SINGLE SONG VIEW -->
@@ -103,6 +106,11 @@
             <button onclick="showView('home')" class="btn-gray">← Volver</button>
             <h2 id="song-detail-title"></h2>
             <div id="song-detail-content" class="chord-sheet"></div>
+            <div class="detail-controls">
+                <button onclick="detailChangeTone(1)">↑ Tono</button>
+                <button onclick="detailChangeTone(-1)">↓ Tono</button>
+                <button onclick="toggleScroll()" id="detail-btn-scroll">Scroll: OFF</button>
+            </div>
         </div>
     </div>
 
@@ -112,7 +120,7 @@
             <button onclick="changeTone(1)">↑ Tono</button>
             <button onclick="changeTone(-1)">↓ Tono</button>
         </div>
-        <button onclick="exitStageMode()" style="position:fixed; top:10px; left:10px;" class="btn-danger">Salir</button>
+        <button onclick="exitStageMode()" style="position:fixed; top:10px; left:ir</button>
         <div id="stage-content" class="chord-sheet"></div>
         <div class="stage-controls">
             <button onclick="toggleScroll()" id="btn-scroll">Scroll: OFF</button>
@@ -163,10 +171,12 @@
         let currentEventId = null;
         let currentStageSongs = [];
         let currentTranspose = 0;
+        let detailTranspose = 0;
+        let currentViewingSong = null;
         let scrollInterval = null;
 
         async function showView(view) {
-            ['view-home', 'view-add', 'view-events', 'view-event-detail', 'view-stage', 'view-song-detail'].forEach(v => {
+            ['view-home', 'view-add', 'view-events', 'view-event-detail', 'view-orEach(v => {
                 document.getElementById(v).classList.add('hidden');
             });
             document.getElementById('view-' + view).classList.remove('hidden');
@@ -180,22 +190,15 @@
             const artist = document.getElementById('s-artist').value;
             const tone = document.getElementById('s-tone').value;
             const content = document.getElementById('s-content').value;
-
             if(!title) { alert("Por favor pon un título"); return; }
-
             const search_text = normalizeText(stripChords(content) + " " + title + " " + artist);
             const songData = { title, artist, tone, content, search_text };
-
-            if (id) {
-                await db.songs.update(parseInt(id), songData);
-            } else {
-                await db.songs.add(songData);
-            }
+            if (id) { await db.songs.update(parseInt(id), songData); } else { await db.songs.add(songData); }
             showView('home');
         }
 
         async function loadSongs() {
-            const query = normalizeText(document.getElementById('search-input').value);
+            const query = normalizeText(document.getElementById('search-input').
             const listDiv = document.getElementById('songs-list');
             listDiv.innerHTML = '';
             let songs = await db.songs.toArray();
@@ -209,7 +212,7 @@
             songs.sort((a, b) => a.title.localeCompare(b.title)).forEach(s => {
                 const div = document.createElement('div');
                 div.className = 'item-card';
-                div.innerHTML = `<div class="item-info"><b>${s.title}</b><span>${s.artist} | ${s.tone}</span></div><button class="btn-gray" onclick="editSong(event, ${s.id})">✎</button>`;
+                div.innerHTML = `<div class="item-info"><b>${s.title}</b><span>$</div><button class="btn-gray" onclick="editSong(event, ${s.id})">✎</button>`;
                 div.onclick = () => openSong(s);
                 listDiv.appendChild(div);
             });
@@ -228,10 +231,33 @@
         }
 
         function openSong(song) {
+            currentViewingSong = song;
+            detailTranspose = 0;
             showView('song-detail');
             document.getElementById('song-detail-title').innerText = song.title;
-            const formatted = song.content.replace(/^\[(.*?)\]/gm, '<span class="section-title">$1</span>');
-            document.getElementById('song-detail-content').innerHTML = formatted;
+            renderDetailContent();
+        }
+
+        function renderDetailContent() {
+            const contentDiv = document.getElementById('song-detail-content');
+            let html = "";
+            const lines = currentViewingSong.content.split('\n');
+            lines.forEach(line => {
+                if (line.startsWith('[')) {
+                    html += `<span class="section-title">${line.substring(1, lin
+                } else {
+                    const transposedLine = line.replace(/([A-G]#?[m7maj|sus|add|
+                        return transposeChord(match, detailTranspose);
+                    });
+                    html += transposedLine + "\n";
+                }
+            });
+            contentDiv.innerHTML = html;
+        }
+
+        function detailChangeTone(semitones) {
+            detailTranspose += semitones;
+            renderDetailContent();
         }
 
         async function loadEvents() {
@@ -262,7 +288,7 @@
             showView('event-detail');
             const allSongs = await db.songs.toArray();
             const select = document.getElementById('ev-song-select');
-            select.innerHTML = allSongs.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
+            select.innerHTML = allSongs.map(s => `<option value="${s.id}">${s.ti
             loadEventSongs();
         }
 
@@ -284,15 +310,15 @@
         }
 
         async function addSongToEvent() {
-            const songId = parseInt(document.getElementById('ev-song-select').value);
+            const songId = parseInt(document.getElementById('ev-song-select').va
             const count = await db.eventSongs.where('eventId').equals(currentEventId).count();
-            await db.eventSongs.add({ eventId: currentEventId, songId, order: count });
+            await db.eventSongs.add({ eventId: currentEventId, songId, order: co
             loadEventSongs();
         }
 
         async function moveSong(id, dir) {
             const song = await db.eventSongs.get(id);
-            const all = await db.eventSongs.where('eventId').equals(currentEventId).sortBy('order').toArray();
+            const all = await db.eventSongs.where('eventId').equals(currentEvent;
             const idx = all.findIndex(x => x.id === id);
             if (idx + dir < 0 || idx + dir >= all.length) return;
             const other = all[idx + dir];
@@ -348,8 +374,10 @@
                 clearInterval(scrollInterval);
                 scrollInterval = null;
                 document.getElementById('btn-scroll').innerText = "Scroll: OFF";
+                document.getElementById('detail-btn-scroll').innerText = "Scroll
             } else {
                 document.getElementById('btn-scroll').innerText = "Scroll: ON";
+                document.getElementById('detail-btn-scroll').innerText = "Scroll: ON";
                 scrollInterval = setInterval(() => {
                     window.scrollBy(0, 1);
                 }, 50);
