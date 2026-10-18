@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MusicPro Local</title>
-    <!-- Dexie.js para DB Local (Room-like) -->
     <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
     <style>
         :root {
@@ -13,77 +12,75 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
         .hidden { display: none !important; }
 
-        /* Layout */
-        header { background: var(--primary); color: white; padding: 1rem; positi10; display: flex; justify-content: space-between; align-items: center; }
+        header { background: var(--primary); color: white; padding: 1rem; position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; }
         .container { padding: 1rem; max-width: 800px; margin: 0 auto; }
 
-        /* Inputs */
-        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; boradius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { padding: 12px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { padding: 12px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin: 5px 0; }
         .btn-gray { background: #64748b; }
         .btn-danger { background: #ef4444; }
 
-        /* Listas */
-        .item-card { background: var(--card); padding: 15px; border-radius: 12pxadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between;align-items: center; cursor: pointer; }
+        .item-card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .item-info b { display: block; font-size: 1.1rem; }
         .item-info span { font-size: 0.9rem; color: #64748b; }
 
-        /* Visualizador de Acordes */
         .chord-sheet {
             font-family: 'Courier New', Courier, monospace;
-            white-space: pre;
+            white-space: pre-wrap;
             overflow-x: auto;
             line-height: 1.6;
             font-size: 18px;
             background: white;
             padding: 20px;
             border-radius: 8px;
+            border: 1px solid #ddd;
         }
-        .section-title { font-weight: bold; color: var(--primary); display: blocargin-top: 1.5rem; font-size: 1.2rem; }
+        .section-title { font-weight: bold; color: var(--primary); display: block; font-family: sans-serif; margin-top: 1.5rem; font-size: 1.2rem; border-bottom: 1px solid #eee; }
 
-        /* Modo Escenario */
         .stage-mode { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-        .stage-controls { position: fixed; bottom: 20px; right: 20px; display: f }
+        .stage-controls { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; z-index: 110; }
         .tone-ctrl { position: fixed; top: 80px; right: 20px; display: flex; flex-direction: column; gap: 5px; z-index: 110; }
 
-        /* Eventos */
-        .event-song { background: #fff; margin: 5px 0; padding: 10px; border: 1p5px; display: flex; justify-content: space-between; align-items: center; }
+        .event-song { background: #fff; margin: 5px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
 
     <header>
-        <span id="nav-title" onclick="showView('home')" style="cursor:pointer; fpan>
+        <span id="nav-title" onclick="showView('home')" style="cursor:pointer; font-weight:bold;">MusicPro</span>
         <div id="header-actions"></div>
     </header>
 
     <div class="container">
-        <!-- HOME: Buscador y Lista -->
+        <!-- HOME -->
         <div id="view-home">
             <input type="text" id="search-input" placeholder="Buscar título, artista o letra..." oninput="loadSongs()">
             <div id="songs-list"></div>
             <button onclick="showView('add')" style="width:100%; margin-top:20px;">+ Nueva Canción</button>
-            <button onclick="showView('events')" class="btn-gray" style="width:1 Eventos</button>
+            <button onclick="showView('events')" class="btn-gray" style="width:100%; margin-top:10px;">📅 Mis Eventos</button>
         </div>
 
         <!-- ADD/EDIT SONG -->
         <div id="view-add" class="hidden">
             <h2 id="form-title">Nueva Canción</h2>
             <input type="hidden" id="song-id">
-            <input type="text" id="s-title" placeholder="Título">
-            <input type="text" id="s-artist" placeholder="Artista">
-            <input type="text" id="s-tone" placeholder="Tono (ej: G)">
-            <textarea id="s-content" rows="15" placeholder="[Intro]&#10;G       ea>
-            <button onclick="saveSong()">Guardar Canción</button>
-            <button onclick="showView('home')" class="btn-gray">Cancelar</button
+            <label>Título</label><input type="text" id="s-title">
+            <label>Artista</label><input type="text" id="s-artist">
+            <label>Tono Original</label><input type="text" id="s-tone">
+            <label>Letra y Acordes</label>
+            <textarea id="s-content" rows="15" placeholder="[Intro]&#10;G       C&#10;Letra aquí..."></textarea>
+            <div style="display:flex; gap:10px;">
+                <button onclick="saveSong()" style="flex:2;">💾 Guardar Canción</button>
+                <button onclick="showView('home')" class="btn-gray" style="flex:1;">Cancelar</button>
+            </div>
         </div>
 
-        <!-- EVENTS LIST -->
+        <!-- EVENTS -->
         <div id="view-events" class="hidden">
             <h2>Eventos</h2>
             <div id="events-list"></div>
             <hr>
-            <input type="text" id="ev-name" placeholder="Nombre del evento (ej:
+            <input type="text" id="ev-name" placeholder="Nombre del evento (ej: Culto Domingo)">
             <button onclick="createEvent()">Crear Evento</button>
             <button onclick="showView('home')" class="btn-gray">Volver</button>
         </div>
@@ -97,12 +94,19 @@
             <select id="ev-song-select"></select>
             <button onclick="addSongToEvent()">Agregar</button>
             <br><br>
-            <button onclick="showView('events')" class="btn-gray">Volver</button
+            <button onclick="showView('events')" class="btn-gray">Volver</button>
             <button onclick="enterStageMode()" style="background: #16a34a;">🚀 Modo Escenario</button>
+        </div>
+
+        <!-- SINGLE SONG VIEW -->
+        <div id="view-song-detail" class="hidden">
+            <button onclick="showView('home')" class="btn-gray">← Volver</button>
+            <h2 id="song-detail-title"></h2>
+            <div id="song-detail-content" class="chord-sheet"></div>
         </div>
     </div>
 
-    <!-- STAGE MODE (FULL SCREEN) -->
+    <!-- STAGE MODE -->
     <div id="view-stage" class="hidden stage-mode">
         <div class="tone-ctrl">
             <button onclick="changeTone(1)">↑ Tono</button>
@@ -111,14 +115,11 @@
         <button onclick="exitStageMode()" style="position:fixed; top:10px; left:10px;" class="btn-danger">Salir</button>
         <div id="stage-content" class="chord-sheet"></div>
         <div class="stage-controls">
-            <button onclick="toggleScroll()" id="btn-scroll">Scroll: OFF</button
+            <button onclick="toggleScroll()" id="btn-scroll">Scroll: OFF</button>
         </div>
     </div>
 
     <script>
-        // ========================================================================
-        // DB CONFIGURATION (DEXIE / ROOM-LIKE)
-        // ========================================================================
         const db = new Dexie("MusicProDB");
         db.version(1).stores({
             songs: '++id, title, artist, tone, search_text',
@@ -126,14 +127,11 @@
             eventSongs: '++id, eventId, songId, order'
         });
 
-        // ========================================================================
-        // MUSICAL ENGINE (PURE FUNCTIONS)
-        // ========================================================================
-        const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#
+        const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
         const normalizeTone = (tone) => {
             if (!tone) return 'C';
-            const flats = { 'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb'
+            const flats = { 'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#' };
             for (let [f, s] of Object.entries(flats)) {
                 if (tone.startsWith(f)) return s + tone.slice(2);
             }
@@ -145,7 +143,6 @@
             let normalized = normalizeTone(chord);
             const rootMatch = normalized.match(/^([A-G]#?)/);
             if (!rootMatch) return chord;
-
             const root = rootMatch[1];
             const suffix = normalized.slice(root.length);
             const currentIndex = NOTES.indexOf(root);
@@ -154,26 +151,22 @@
         };
 
         const stripChords = (text) => {
-            // Elimina líneas que parecen solo acordes o fragmentos de acordes
             return text.split('\n').filter(line => {
                 return !line.match(/^[A-G]#?[m7maj|sus|add|5]*\s*$/);
             }).join('\n');
         };
 
         const normalizeText = (text) => {
-            return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLower
+            return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
         };
 
-        // ========================================================================
-        // APP LOGIC
-        // ========================================================================
         let currentEventId = null;
         let currentStageSongs = [];
         let currentTranspose = 0;
         let scrollInterval = null;
 
         async function showView(view) {
-            ['view-home', 'view-add', 'view-events', 'view-event-detail', 'view-
+            ['view-home', 'view-add', 'view-events', 'view-event-detail', 'view-stage', 'view-song-detail'].forEach(v => {
                 document.getElementById(v).classList.add('hidden');
             });
             document.getElementById('view-' + view).classList.remove('hidden');
@@ -188,8 +181,9 @@
             const tone = document.getElementById('s-tone').value;
             const content = document.getElementById('s-content').value;
 
-            const search_text = normalizeText(stripChords(content) + " " + title + " " + artist);
+            if(!title) { alert("Por favor pon un título"); return; }
 
+            const search_text = normalizeText(stripChords(content) + " " + title + " " + artist);
             const songData = { title, artist, tone, content, search_text };
 
             if (id) {
@@ -201,12 +195,10 @@
         }
 
         async function loadSongs() {
-            const query = normalizeText(document.getElementById('search-input').
+            const query = normalizeText(document.getElementById('search-input').value);
             const listDiv = document.getElementById('songs-list');
             listDiv.innerHTML = '';
-
             let songs = await db.songs.toArray();
-
             if (query) {
                 songs = songs.filter(s =>
                     normalizeText(s.title).includes(query) ||
@@ -214,7 +206,6 @@
                     s.search_text.includes(query)
                 );
             }
-
             songs.sort((a, b) => a.title.localeCompare(b.title)).forEach(s => {
                 const div = document.createElement('div');
                 div.className = 'item-card';
@@ -236,9 +227,13 @@
             showView('add');
         }
 
-        // ========================================================================
-        // EVENTS LOGIC
-        // ========================================================================
+        function openSong(song) {
+            showView('song-detail');
+            document.getElementById('song-detail-title').innerText = song.title;
+            const formatted = song.content.replace(/^\[(.*?)\]/gm, '<span class="section-title">$1</span>');
+            document.getElementById('song-detail-content').innerHTML = formatted;
+        }
+
         async function loadEvents() {
             const evDiv = document.getElementById('events-list');
             evDiv.innerHTML = '';
@@ -265,20 +260,16 @@
             const ev = await db.events.get(id);
             document.getElementById('ev-detail-title').innerText = ev.name;
             showView('event-detail');
-
-            // Llenar select de canciones
             const allSongs = await db.songs.toArray();
             const select = document.getElementById('ev-song-select');
-            select.innerHTML = allSongs.map(s => `<option value="${s.id}">${s.ti
-
+            select.innerHTML = allSongs.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
             loadEventSongs();
         }
 
         async function loadEventSongs() {
             const listDiv = document.getElementById('ev-songs-list');
             listDiv.innerHTML = '';
-            const eventSongs = await db.eventSongs.where('eventId').equals(curre
-
+            const eventSongs = await db.eventSongs.where('eventId').equals(currentEventId).sortBy('order');
             for (let es of eventSongs) {
                 const s = await db.songs.get(es.songId);
                 const div = document.createElement('div');
@@ -293,18 +284,17 @@
         }
 
         async function addSongToEvent() {
-            const songId = parseInt(document.getElementById('ev-song-select').va
+            const songId = parseInt(document.getElementById('ev-song-select').value);
             const count = await db.eventSongs.where('eventId').equals(currentEventId).count();
-            await db.eventSongs.add({ eventId: currentEventId, songId, order: co
+            await db.eventSongs.add({ eventId: currentEventId, songId, order: count });
             loadEventSongs();
         }
 
         async function moveSong(id, dir) {
             const song = await db.eventSongs.get(id);
-            const all = await db.eventSongs.where('eventId').equals(currentEvent;
+            const all = await db.eventSongs.where('eventId').equals(currentEventId).sortBy('order').toArray();
             const idx = all.findIndex(x => x.id === id);
             if (idx + dir < 0 || idx + dir >= all.length) return;
-
             const other = all[idx + dir];
             await db.eventSongs.update(id, { order: other.order });
             await db.eventSongs.update(other.id, { order: song.order });
@@ -316,16 +306,12 @@
             loadEventSongs();
         }
 
-        // ========================================================================
-        // STAGE MODE LOGIC
-        // ========================================================================
         async function enterStageMode() {
             const eventSongs = await db.eventSongs.where('eventId').equals(currentEventId).sortBy('order').toArray();
             currentStageSongs = [];
             for (let es of eventSongs) {
                 currentStageSongs.push(await db.songs.get(es.songId));
             }
-
             currentTranspose = 0;
             renderStage();
             showView('stage');
@@ -334,16 +320,13 @@
         function renderStage() {
             const contentDiv = document.getElementById('stage-content');
             let html = "";
-
             currentStageSongs.forEach(song => {
                 html += `<h1 style="font-family:sans-serif; text-align:center;">${song.title}</h1>`;
-
                 const lines = song.content.split('\n');
                 lines.forEach(line => {
                     if (line.startsWith('[')) {
-                        html += `<span class="section-title">${line.substring(1,
+                        html += `<span class="section-title">${line.substring(1, line.length-1)}</span>\n`;
                     } else {
-                        // Transponer cada acorde en la línea
                         const transposedLine = line.replace(/([A-G]#?[m7maj|sus|add|5]*)/g, (match) => {
                             return transposeChord(match, currentTranspose);
                         });
@@ -378,7 +361,6 @@
             showView('home');
         }
 
-        // Start
         window.onload = () => showView('home');
     </script>
 </body>
